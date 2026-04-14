@@ -10,7 +10,11 @@ use uuid::Uuid;
 #[command(name = "memory-cli", about = "Memory system CLI client")]
 struct Cli {
     /// Server URL
-    #[arg(long, env = "MEMORY_SERVER_URL", default_value = "http://localhost:3002")]
+    #[arg(
+        long,
+        env = "MEMORY_SERVER_URL",
+        default_value = "http://localhost:3002"
+    )]
     server: String,
 
     #[command(subcommand)]
@@ -309,16 +313,12 @@ fn main() -> Result<()> {
                 }
             }
             PerceptualCmd::Get { id } => {
-                let resp = check_response(
-                    http.get(format!("{base}/api/perceptual/{id}")).send()?,
-                )?;
+                let resp = check_response(http.get(format!("{base}/api/perceptual/{id}")).send()?)?;
                 let m: PerceptualMemory = resp.json()?;
                 print_perceptual(&m);
             }
             PerceptualCmd::Delete { id } => {
-                check_response(
-                    http.delete(format!("{base}/api/perceptual/{id}")).send()?,
-                )?;
+                check_response(http.delete(format!("{base}/api/perceptual/{id}")).send()?)?;
                 println!("Deleted {id}");
             }
         },
@@ -373,9 +373,7 @@ fn main() -> Result<()> {
                 }
             }
             RationalCmd::Get { id } => {
-                let resp = check_response(
-                    http.get(format!("{base}/api/rational/{id}")).send()?,
-                )?;
+                let resp = check_response(http.get(format!("{base}/api/rational/{id}")).send()?)?;
                 let m: RationalMemory = resp.json()?;
                 print_rational(&m);
             }
@@ -401,9 +399,7 @@ fn main() -> Result<()> {
                 print_rational(&m);
             }
             RationalCmd::Delete { id } => {
-                check_response(
-                    http.delete(format!("{base}/api/rational/{id}")).send()?,
-                )?;
+                check_response(http.delete(format!("{base}/api/rational/{id}")).send()?)?;
                 println!("Deleted {id}");
             }
         },

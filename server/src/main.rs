@@ -269,9 +269,12 @@ async fn create_perceptual(
     State(state): State<Arc<AppState>>,
     Json(input): Json<CreatePerceptual>,
 ) -> ApiResult<(StatusCode, Json<PerceptualMemory>)> {
-    let embedding = embed_text(&state, &input.content)
-        .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("embedding failed: {e}")))?;
+    let embedding = embed_text(&state, &input.content).await.map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("embedding failed: {e}"),
+        )
+    })?;
     let vec = Vector::from(embedding);
     let row = sqlx::query_as::<_, PerceptualMemory>(
         "INSERT INTO perceptual_memories (content, embedding, source) VALUES ($1, $2, $3) RETURNING id, content, source, created_at, updated_at",
@@ -289,9 +292,12 @@ async fn search_perceptual(
     State(state): State<Arc<AppState>>,
     Query(params): Query<SearchQuery>,
 ) -> ApiResult<Json<Vec<PerceptualMemoryWithScore>>> {
-    let embedding = embed_text(&state, &params.q)
-        .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("embedding failed: {e}")))?;
+    let embedding = embed_text(&state, &params.q).await.map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("embedding failed: {e}"),
+        )
+    })?;
     let vec = Vector::from(embedding);
     let rows = sqlx::query_as::<_, (Uuid, String, Option<String>, f64, DateTime<Utc>)>(
         "SELECT id, content, source, 1 - (embedding <=> $1) AS score, created_at FROM perceptual_memories ORDER BY embedding <=> $1 LIMIT $2",
@@ -303,13 +309,15 @@ async fn search_perceptual(
     .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
     let results: Vec<PerceptualMemoryWithScore> = rows
         .into_iter()
-        .map(|(id, content, source, score, created_at)| PerceptualMemoryWithScore {
-            id,
-            content,
-            source,
-            score,
-            created_at,
-        })
+        .map(
+            |(id, content, source, score, created_at)| PerceptualMemoryWithScore {
+                id,
+                content,
+                source,
+                score,
+                created_at,
+            },
+        )
         .collect();
     Ok(Json(results))
 }
@@ -403,13 +411,11 @@ async fn get_rational(
     State(state): State<Arc<AppState>>,
     Path(id): Path<Uuid>,
 ) -> ApiResult<Json<RationalMemory>> {
-    let row = sqlx::query_as::<_, RationalMemory>(
-        "SELECT * FROM rational_memories WHERE id = $1",
-    )
-    .bind(id)
-    .fetch_optional(&state.db)
-    .await
-    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+    let row = sqlx::query_as::<_, RationalMemory>("SELECT * FROM rational_memories WHERE id = $1")
+        .bind(id)
+        .fetch_optional(&state.db)
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
     match row {
         Some(m) => Ok(Json(m)),
         None => Err((StatusCode::NOT_FOUND, "not found".to_string())),
@@ -421,13 +427,12 @@ async fn update_rational(
     Path(id): Path<Uuid>,
     Json(input): Json<UpdateRational>,
 ) -> ApiResult<Json<RationalMemory>> {
-    let existing = sqlx::query_as::<_, RationalMemory>(
-        "SELECT * FROM rational_memories WHERE id = $1",
-    )
-    .bind(id)
-    .fetch_optional(&state.db)
-    .await
-    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+    let existing =
+        sqlx::query_as::<_, RationalMemory>("SELECT * FROM rational_memories WHERE id = $1")
+            .bind(id)
+            .fetch_optional(&state.db)
+            .await
+            .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
     let existing = match existing {
         Some(m) => m,
         None => return Err((StatusCode::NOT_FOUND, "not found".to_string())),
@@ -526,7 +531,12 @@ async fn health(State(state): State<Arc<AppState>>) -> ApiResult<&'static str> {
     sqlx::query("SELECT 1")
         .execute(&state.db)
         .await
-        .map_err(|_| (StatusCode::SERVICE_UNAVAILABLE, "db unreachable".to_string()))?;
+        .map_err(|_| {
+            (
+                StatusCode::SERVICE_UNAVAILABLE,
+                "db unreachable".to_string(),
+            )
+        })?;
     Ok("ok")
 }
 
@@ -543,10 +553,7 @@ async fn run_consolidate(state: &AppState) -> Result<()> {
         limit: 100,
     };
     let events = query_quickwit(state, &params).await?;
-    let hits = events["hits"]
-        .as_array()
-        .map(|a| a.len())
-        .unwrap_or(0);
+    let hits = events["hits"].as_array().map(|a| a.len()).unwrap_or(0);
     tracing::info!("fetched {hits} events from quickwit");
 
     // TODO: Call Claude API to extract structured facts from events
