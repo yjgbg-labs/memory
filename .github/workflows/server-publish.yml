@@ -27,6 +27,7 @@ jobs:
           use-fallback: false
           path: |
             ~/.rustup
+            ~/.cargo/bin
             ~/.cargo/registry
             ~/.cargo/git
             server/target
