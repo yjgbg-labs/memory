@@ -33,7 +33,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             cli/target
-          key: cli-${{ hashFiles('cli/Cargo.lock') }}
+          key: cli-${{ hashFiles('cli/Cargo.lock', '.github/workflows/cli-release.yml') }}
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable

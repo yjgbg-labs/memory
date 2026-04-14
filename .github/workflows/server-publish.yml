@@ -30,7 +30,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             server/target
-          key: server-${{ hashFiles('server/Cargo.lock') }}
+          key: server-${{ hashFiles('server/Cargo.lock', '.github/workflows/server-publish.yml') }}
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
