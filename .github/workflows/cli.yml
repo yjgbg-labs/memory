@@ -19,7 +19,19 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y build-essential
 
       - name: Setup Rust
-        run: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
 
-      - run: cargo build
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            cli/target
+          key: cli-${{ hashFiles('cli/Cargo.lock') }}
+
+      - run: cargo fmt --check
+      - run: cargo clippy -- -D warnings
+      - run: cargo build --release
       - run: cargo run -- --help
