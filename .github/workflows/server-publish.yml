@@ -1,0 +1,43 @@
+name: Server Publish
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    runs-on: arc-runner-set
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: sudo apt-get update && sudo apt-get install -y build-essential
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            server/target
+          key: server-${{ hashFiles('server/Cargo.lock') }}
+
+      - run: cargo build --release
+
+      - name: Install buildctl
+        run: |
+          curl -sL https://github.com/moby/buildkit/releases/download/v0.21.1/buildkit-v0.21.1.linux-amd64.tar.gz | sudo tar -xz -C /usr/local
+
+      - name: Build and push image
+        run: |
+          buildctl --addr tcp://buildkitd.arc-runners:1234 build \
+            --frontend dockerfile.v0 \
+            --local context=. \
+            --local dockerfile=. \
+            --output type=image,name=reg.yjgbg.lab:80/memory-server:${{ github.ref_name }},push=true,registry.insecure=true

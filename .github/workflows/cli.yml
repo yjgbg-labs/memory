@@ -1,0 +1,25 @@
+name: CLI CI
+
+on:
+  push:
+    paths:
+      - 'cli/**'
+      - '.github/workflows/cli.yml'
+
+jobs:
+  build:
+    runs-on: arc-runner-set
+    defaults:
+      run:
+        working-directory: cli
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: sudo apt-get update && sudo apt-get install -y build-essential
+
+      - name: Setup Rust
+        run: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - run: cargo build
+      - run: cargo run -- --help
