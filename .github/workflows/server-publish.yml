@@ -29,6 +29,7 @@ jobs:
           bucket: actions-cache
           use-fallback: false
           path: |
+            ~/.rustup
             ~/.cargo/registry
             ~/.cargo/git
             server/target
