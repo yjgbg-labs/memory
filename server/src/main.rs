@@ -176,13 +176,22 @@ async fn query_quickwit(state: &AppState, params: &TemporalQuery) -> Result<serd
     let mut search_body = serde_json::json!({
         "query": query,
         "max_hits": params.limit,
-        "sort_by": "-timestamp",
+        "sort_by": "-timestamp_nanos",
     });
     if let Some(ref from) = params.from {
-        search_body["start_timestamp"] = serde_json::json!(from);
+        // Parse ISO 8601 to epoch seconds for Quickwit
+        if let Ok(dt) = from.parse::<DateTime<Utc>>() {
+            search_body["start_timestamp"] = serde_json::json!(dt.timestamp());
+        } else if let Ok(ts) = from.parse::<i64>() {
+            search_body["start_timestamp"] = serde_json::json!(ts);
+        }
     }
     if let Some(ref to) = params.to {
-        search_body["end_timestamp"] = serde_json::json!(to);
+        if let Ok(dt) = to.parse::<DateTime<Utc>>() {
+            search_body["end_timestamp"] = serde_json::json!(dt.timestamp());
+        } else if let Ok(ts) = to.parse::<i64>() {
+            search_body["end_timestamp"] = serde_json::json!(ts);
+        }
     }
     let resp = client
         .post(format!(
