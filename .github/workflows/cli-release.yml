@@ -23,8 +23,14 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - uses: actions/cache@v4
+      - uses: tespkg/actions-cache@v1
         with:
+          endpoint: s3.yjgbg.lab
+          insecure: true
+          accessKey: ${{ secrets.S3_ACCESS_KEY }}
+          secretKey: ${{ secrets.S3_SECRET_KEY }}
+          bucket: actions-cache
+          use-fallback: false
           path: |
             ~/.cargo/registry
             ~/.cargo/git
