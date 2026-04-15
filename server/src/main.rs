@@ -42,6 +42,7 @@ struct AppState {
     ollama_url: String,
     ollama_model: String,
     quickwit_url: String,
+    embedding_dim: u32,
 }
 
 // ── Models ───────────────────────────────────────────────────────────
@@ -212,23 +213,23 @@ async fn query_quickwit(state: &AppState, params: &TemporalQuery) -> Result<serd
 
 // ── Database Init ────────────────────────────────────────────────────
 
-async fn init_db(pool: &PgPool) -> Result<()> {
+async fn init_db(pool: &PgPool, embedding_dim: u32) -> Result<()> {
     sqlx::query("CREATE EXTENSION IF NOT EXISTS vector")
         .execute(pool)
         .await?;
 
-    sqlx::query(
+    sqlx::query(&format!(
         r#"
         CREATE TABLE IF NOT EXISTS perceptual_memories (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             content TEXT NOT NULL,
-            embedding vector(768),
+            embedding vector({embedding_dim}),
             source TEXT,
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
             updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         )
         "#,
-    )
+    ))
     .execute(pool)
     .await?;
 
@@ -582,6 +583,10 @@ async fn main() -> Result<()> {
         std::env::var("OLLAMA_URL").unwrap_or_else(|_| "http://localhost:11434".to_string());
     let ollama_model =
         std::env::var("OLLAMA_MODEL").unwrap_or_else(|_| "nomic-embed-text".to_string());
+    let embedding_dim: u32 = std::env::var("EMBEDDING_DIM")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(1024);
     let quickwit_url =
         std::env::var("QUICKWIT_URL").unwrap_or_else(|_| "http://localhost:7280".to_string());
 
@@ -590,13 +595,14 @@ async fn main() -> Result<()> {
         .connect(&database_url)
         .await?;
 
-    init_db(&pool).await?;
+    init_db(&pool, embedding_dim).await?;
 
     let state = AppState {
         db: pool,
         ollama_url,
         ollama_model,
         quickwit_url,
+        embedding_dim,
     };
 
     let cli = Cli::parse();
