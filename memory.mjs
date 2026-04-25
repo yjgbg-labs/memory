@@ -186,10 +186,23 @@ try {
     // ── Search ─────────────────────────────────────────────────────────
     case "search": {
       if (!positional[0]) usage();
-      const rows = await search(positional[0], { limit, table: flags.table });
+      let vector = null;
+      try {
+        const resp = await fetch("http://127.0.0.1:3457/embed", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: positional[0] }),
+          signal: AbortSignal.timeout(2000),
+        });
+        if (resp.ok) {
+          const { vectors } = await resp.json();
+          vector = vectors[0];
+        }
+      } catch {} // daemon not running, fall back to local embedding
+      const rows = await search(positional[0], { limit, table: flags.table, vector });
       if (asJson) out(rows);
       else printSearchTable(rows);
-      break;
+      process.exit(0);
     }
 
     // ── Facts ──────────────────────────────────────────────────────────

@@ -46,6 +46,9 @@ fi
 
 if [ -n "$CUDA_LIB_PATH" ]; then
   export LD_LIBRARY_PATH="$CUDA_LIB_PATH:${LD_LIBRARY_PATH:-}"
+  if [ "${MEMORY_NO_GPU:-0}" = "1" ]; then
+    export ORT_DISABLE_CUDA=1
+  fi
 fi
 
 exec node "$MEMORY_HOME/memory.mjs" "$@" 2> >(grep -v 'onnxruntime\|VerifyEachNode\|Rerunning with verbose' >&2)
