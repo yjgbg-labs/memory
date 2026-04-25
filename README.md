@@ -102,7 +102,9 @@ memory dream [--all] [--verbose]
 
 ## 配置
 
-- **PG 连接**：自动从 vault 获取密码（key: `memory_pg_password`）
-- **嵌入模型**：BGE-M3 fp32 via Transformers.js，优先 CUDA
-- **Dream LLM**：DeepSeek Reasoner（vault: `deepseek_key`）
-- **状态文件**：`~/.copilot/.memory-index-state.json`
+| 变量 | 说明 | 示例 |
+|---|---|---|
+| `MEMORY_DATABASE_URL` | PostgreSQL 连接 | `postgres://memory:pass@10.0.2.0:5432/memory` |
+| `DREAM_API_KEY` | DeepSeek API key | `sk-xxx` |
+| `DREAM_API_BASE` | LLM API 地址（可选） | `https://api.deepseek.com/v1` |
+| `DREAM_MODEL` | Dream 模型（可选） | `deepseek-reasoner` |

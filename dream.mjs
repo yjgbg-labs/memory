@@ -24,17 +24,13 @@ const EXTRACT_MAX_TURNS = 30;
 // ── LLM config ───────────────────────────────────────────────────────
 
 async function getLLMConfig() {
-  const base = process.env.DREAM_API_BASE || "https://api.deepseek.com/v1";
-  const model = process.env.DREAM_MODEL || "deepseek-reasoner";
-  let key = process.env.DREAM_API_KEY;
-  if (!key) {
-    try {
-      const res = await fetch("http://10.0.0.1/cgi-bin/kv-get?key=deepseek_key");
-      if (res.ok) key = (await res.text()).trim();
-    } catch {}
-  }
-  if (!key) throw new Error("No LLM API key — set DREAM_API_KEY or vault deepseek_key");
-  return { base, model, key };
+  const key = process.env.DREAM_API_KEY;
+  if (!key) throw new Error("DREAM_API_KEY not set");
+  return {
+    base: process.env.DREAM_API_BASE || "https://api.deepseek.com/v1",
+    model: process.env.DREAM_MODEL || "deepseek-reasoner",
+    key,
+  };
 }
 
 async function callLLM(messages, config, { tools, maxTokens = 4096, verbose = false } = {}) {
