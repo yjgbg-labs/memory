@@ -6,11 +6,30 @@
  * All read commands support --json for full JSON output (no truncation).
  * Default output is a human-readable table with content truncated for terminal viewing.
  */
+import { readFileSync } from "fs";
+import { homedir } from "os";
+import { join } from "path";
+
 import {
   init, clear, health, stats, end,
   search, getFacts, addFact, updateFact, deleteFact, confirmFact,
   getSegment, listSegments, getSegmentEvents, updateSegment,
 } from "./lib/ops.mjs";
+
+// Load ~/.memoryrc before any command runs
+const rcPath = join(homedir(), ".memoryrc");
+try {
+  const rc = readFileSync(rcPath, "utf8");
+  for (const line of rc.split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const eq = trimmed.indexOf("=");
+    if (eq < 0) continue;
+    const key = trimmed.slice(0, eq).trim();
+    const val = trimmed.slice(eq + 1).trim();
+    if (!process.env[key]) process.env[key] = val;
+  }
+} catch {}
 
 const PORT = Number(process.argv.find((_, i) => process.argv[i - 1] === "--port")) || 3456;
 

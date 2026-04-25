@@ -102,9 +102,17 @@ memory daemon                    # 后台循环 index → dream，空闲 30s sle
 
 ## 配置
 
+启动时自动加载 `~/.memoryrc`（已存在的环境变量不会被覆盖）：
+
+```
+# ~/.memoryrc
+MEMORY_DATABASE_URL=postgres://user:pass@host:5432/memory
+DREAM_API_KEY=sk-xxx
+DREAM_MODEL=deepseek-reasoner    # 可选
+```
+
 | 变量 | 说明 | 示例 |
 |---|---|---|
 | `MEMORY_DATABASE_URL` | PostgreSQL 连接 | `postgres://memory:pass@10.0.2.0:5432/memory` |
 | `DREAM_API_KEY` | DeepSeek API key | `sk-xxx` |
-| `DREAM_API_BASE` | LLM API 地址（可选） | `https://api.deepseek.com/v1` |
 | `DREAM_MODEL` | Dream 模型（可选） | `deepseek-reasoner` |
