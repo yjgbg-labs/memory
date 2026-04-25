@@ -1,0 +1,10 @@
+{
+  "name": "memory",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "pg": "^8.16.0",
+    "pgvector": "^0.2.0",
+    "@huggingface/transformers": "^3.6.0"
+  }
+}

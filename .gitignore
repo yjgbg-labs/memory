@@ -1,6 +1,4 @@
-/target
-**/target
-**/*.rs.bk
-*.pdb
-*.db
+node_modules/
 .env
+*.db
+.memory-index-state.json
