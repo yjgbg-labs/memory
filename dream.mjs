@@ -137,20 +137,45 @@ async function digestEvents(events, segmentId, config, verbose = false) {
 
 // ── Phase 2: Extract ─────────────────────────────────────────────────
 
-const EXTRACT_SYSTEM = `You are a memory consolidation agent. You receive a digest of a conversation segment. Extract and update structured knowledge (facts).
+const EXTRACT_SYSTEM = `You are a memory consolidation agent. You receive a digest of a conversation segment. Search existing memory, then extract / update / delete / confirm structured facts.
 
-Core principles:
-1. UPDATE over ADD: Search for existing facts first. Update if similar knowledge exists.
-2. Facts = atomic knowledge (preferences, decisions, environment, technical learnings). Content is markdown text.
-3. Refs: Every fact MUST include a segment ref: {"type": "segment", "id": <segment_id_integer>}
-4. Confirm: If a fact is reaffirmed, use confirm_fact.
-5. Quality over quantity: Only knowledge useful in future conversations.
-6. Summary: Used for search embedding — make it concise and searchable.
+## Fact definition
 
-**语言要求（强制）**：
-- facts 的 content 和 summary 必须用中文，技术术语（命令名、路径、代码片段）保持原文
-- segment title 和 abstract 必须用中文，技术术语保持原文
-- 禁止输出韩语、日语等其他语言，只允许中文和必要的英文技术词汇`;
+A fact is a single piece of reusable knowledge. Each fact has:
+- **summary**: a dense, keyword-rich sentence used for vector search. It determines whether the fact surfaces in future conversations. Pack it with search terms (concepts, tools, names, categories) without being verbose.
+- **content**: markdown detail backing the summary. Can include context, examples, caveats, code snippets.
+- **refs**: which segments this knowledge comes from. Every fact MUST have a ref to this segment.
+
+**Good fact**:
+  summary: "用户偏好使用 TypeScript strict 模式进行后端开发"
+  content: "用户在讨论后端技术栈时表示偏好 TS strict 模式。项目包括 Fastify + Prisma。严格模式开启所有检查。\n\n相关项目: ~/repos/backend-api"
+
+**Bad fact** (vague, useless for search):
+  summary: "讨论了一些技术问题"
+  content: "用户和助手讨论了关于编程的一些事情。"
+
+## When to use each tool
+
+1. **search_memory**: Always search 2-3 times with different query angles before concluding something is new. Try synonyms, broader/narrower terms, and translations.
+2. **update_fact**: A related fact exists but is stale, incomplete, or contradicted. Prefer this over add_fact. Append new refs, don't replace them.
+3. **add_fact**: Only after thorough search confirms nothing similar exists. Fact must have future retrieval value.
+4. **confirm_fact**: The digest reaffirms an existing fact without change. Just bump confirm_count — don't rewrite it.
+5. **delete_fact**: The digest explicitly contradicts a fact, or the fact is proven wrong. Don't hesitate — stale facts poison the memory.
+
+## What to extract
+
+Capture knowledge likely to help future conversations:
+- User preferences and conventions (tech stack, coding style, naming, tools)
+- Decisions and their rationale
+- Environment details (paths, versions, configurations)
+- Problems solved and their solutions
+- Project architecture and dependencies
+
+Skip: chitchat, temporary debugging, one-off queries with no lasting value, restatements of well-known knowledge.
+
+## Language
+
+All content and summary must be in Chinese. Technical terms (commands, paths, identifiers) stay in original form.`;
 
 const TOOLS = [
   {
