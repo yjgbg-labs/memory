@@ -41,8 +41,7 @@ curl -fsSL https://raw.githubusercontent.com/yjgbg-labs/memory/main/install.sh |
 
 ```bash
 memory init                              # 初始化数据库
-memory index --watch                     # 启动事件采集（守护进程）
-memory dream --all                       # 处理所有 closed segments
+memory daemon                            # 启动后台循环（index → dream → sleep）
 ```
 
 ## CLI 用法
@@ -89,6 +88,7 @@ memory segment update <id> --title "标题" --abstract "摘要"
 ```bash
 memory index [--watch] [--max N] [--no-embed]
 memory dream [--all] [--verbose]
+memory daemon                    # 后台循环 index → dream，空闲 30s sleep
 ```
 
 ## 数据库表

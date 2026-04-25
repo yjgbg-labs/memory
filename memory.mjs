@@ -148,6 +148,7 @@ function usage() {
 
   memory index [--watch] [--max N] [--no-embed]
   memory dream [--all] [--verbose]
+  memory daemon [--verbose]
 
   memory init | health | stats | clear | web [--port N]`);
   process.exit(1);
@@ -300,6 +301,13 @@ try {
     case "dream": {
       const mod = await import("./dream.mjs");
       await mod.run({ all: !!flags.all, verbose: !!flags.verbose });
+      break;
+    }
+
+    // ── Daemon ────────────────────────────────────────────────────────
+    case "daemon": {
+      const mod = await import("./daemon.mjs");
+      await mod.run({ verbose: !!flags.verbose });
       break;
     }
 
