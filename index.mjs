@@ -365,6 +365,21 @@ export async function run({ watch = false, max = DEFAULT_MAX, noEmbed = false } 
     );
 
     // Delete newly-closed segments that don't meet minimum thresholds
+    // Clean up vec + ts first to avoid orphan records (FK ON DELETE SET NULL)
+    await query(
+      `DELETE FROM vec WHERE ref_table = 'ts' AND ref_id IN (
+         SELECT id::text FROM ts WHERE segment_id IN (
+           SELECT id FROM segments WHERE status = 'closed' AND (event_count < $1 OR duration < $2)
+         )
+       )`,
+      [MIN_EVENTS, MIN_DURATION]
+    );
+    await query(
+      `DELETE FROM ts WHERE segment_id IN (
+         SELECT id FROM segments WHERE status = 'closed' AND (event_count < $1 OR duration < $2)
+       )`,
+      [MIN_EVENTS, MIN_DURATION]
+    );
     await query(
       `DELETE FROM segments
        WHERE status = 'closed' AND (event_count < $1 OR duration < $2)`,
