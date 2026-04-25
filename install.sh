@@ -40,6 +40,10 @@ cat > "$BIN" <<'WRAPPER'
 MEMORY_HOME="MEMORY_INSTALL_DIR_PLACEHOLDER"
 CUDA_LIB_PATH="CUDA_LIB_PLACEHOLDER"
 
+if [ -f "$HOME/.memoryrc" ]; then
+  source "$HOME/.memoryrc"
+fi
+
 if [ -n "$CUDA_LIB_PATH" ]; then
   export LD_LIBRARY_PATH="$CUDA_LIB_PATH:${LD_LIBRARY_PATH:-}"
 fi

@@ -102,13 +102,13 @@ memory daemon                    # 后台循环 index → dream，空闲 30s sle
 
 ## 配置
 
-启动时自动加载 `~/.memoryrc`（已存在的环境变量不会被覆盖）：
+启动时自动 source `~/.memoryrc`（标准的 bash 脚本，可写任意 bash）：
 
-```
+```bash
 # ~/.memoryrc
-MEMORY_DATABASE_URL=postgres://user:pass@host:5432/memory
-DREAM_API_KEY=sk-xxx
-DREAM_MODEL=deepseek-reasoner    # 可选
+export MEMORY_DATABASE_URL=postgres://user:pass@host:5432/memory
+export DREAM_API_KEY=sk-xxx
+export DREAM_MODEL=deepseek-reasoner    # 可选
 ```
 
 | 变量 | 说明 | 示例 |
