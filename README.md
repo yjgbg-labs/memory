@@ -31,10 +31,15 @@ open  →  closed  →  dreamed
 - **closed**：最后事件 > 1小时前，≥5条事件 & 持续 ≥5分钟
 - **dreamed**：已提炼为 abstract + facts
 
-## 快速开始
+## 安装
 
 ```bash
-npm install
+curl -fsSL https://raw.githubusercontent.com/yjgbg-labs/memory/main/install.sh | bash
+```
+
+安装完成后：
+
+```bash
 memory init                              # 初始化数据库
 memory index --watch                     # 启动事件采集（守护进程）
 memory dream --all                       # 处理所有 closed segments
